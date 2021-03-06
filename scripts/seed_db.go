@@ -12,6 +12,7 @@ func createGameTable(c *pgx.Conn) {
 	query := `
 		CREATE TABLE game (
 			id serial PRIMARY KEY,
+			name text NOT NULL,
 			owner serial NOT NULL,
 			paused boolean NOT NULL,
 			last_call timestamp
