@@ -1,0 +1,18 @@
+version: "3.3"
+
+services:
+  db:
+    container_name: postgres-db
+    image: postgres
+    environment:
+      - POSTGRES_DB=aiville
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes: 
+      - database-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  database-volume:
+    external: true
