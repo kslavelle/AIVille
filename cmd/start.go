@@ -1,15 +1,8 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import "github.com/kslavelle/AIVille/pkg/router"
 
 func main() {
-	router := gin.Default()
-
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"detail": "Ok",
-		})
-	})
-
-	router.Run()
+	apiRouter := router.CreateAPI()
+	apiRouter.Run(":9001")
 }
