@@ -7,14 +7,27 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/sirupsen/logrus"
 )
 
+// Env that we want to pass down to API calls.
 type Env struct {
-	DB *pgxpool.Pool
+	DB  *pgxpool.Pool
+	Log logrus.Logger
 }
 
 // CreateAPI set's up all the routing to the http handlers
-func CreateAPI() *gin.Engine {
+func CreateAPI() (*gin.Engine, *pgxpool.Pool) {
+
+	// setup the logger
+	logrus.SetFormatter(&logrus.TextFormatter{
+		DisableColors: true,
+		FullTimestamp: true,
+	})
+	logrus.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	logrus.SetLevel(logrus.DebugLevel)
 
 	dbURL := "postgres://postgres:postgres@127.0.0.1:5432/aiville"
 	conn, err := pgxpool.Connect(context.Background(), dbURL)
@@ -22,14 +35,12 @@ func CreateAPI() *gin.Engine {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close()
 	env := Env{DB: conn}
 
 	router := gin.Default()
 
-	router.GET("/health", func(c *gin.Context) {
-		healthCheck(&env, c)
-	})
+	router.GET("/health", healthCheck(&env))
+	router.POST("/game", createNewGame(&env))
 
-	return router
+	return router, conn
 }
