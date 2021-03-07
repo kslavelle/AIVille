@@ -10,12 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Env that we want to pass down to API calls.
-type Env struct {
-	DB  *pgxpool.Pool
-	Log logrus.Logger
-}
-
 // CreateAPI set's up all the routing to the http handlers
 func CreateAPI() (*gin.Engine, *pgxpool.Pool) {
 
@@ -35,7 +29,7 @@ func CreateAPI() (*gin.Engine, *pgxpool.Pool) {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	env := Env{DB: conn}
+	env := Env{DB: conn, Log: logrus.Logger{}}
 
 	router := gin.Default()
 

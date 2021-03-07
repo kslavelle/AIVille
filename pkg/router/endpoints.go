@@ -27,8 +27,8 @@ func createNewGame(env *Env) gin.HandlerFunc {
 			return
 		}
 
-		hardCodedUser := 0
-		err = game.CreateGame(env.DB, hardCodedUser, requestBody.Name)
+		user := env.GetUser("fake-user")
+		err = game.CreateGame(env.DB, user, requestBody.Name)
 		if err != nil {
 			env.Log.Errorf("error when creating game: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
