@@ -26,3 +26,12 @@ func CreateGame(c *pgxpool.Pool, user int, name string) error {
 	err = dbCreateGameState(c, gameID)
 	return err
 }
+
+func (g *Game) getElapsedGameTime() time.Duration {
+	return time.Now().Sub(g.lastOperation) * time.Duration(GameTimeMultiplier)
+}
+
+func (g *Game) updateGameTime(c *pgxpool.Pool) error {
+	err := dbUpdateGameTime(c, g.ID)
+	return err
+}

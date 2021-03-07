@@ -32,5 +32,10 @@ func dbCreateGameState(c *pgxpool.Pool, gameid int) error {
 		`
 	_, err := c.Exec(context.Background(), query, gameid, 2, 0, 0, 5, 10, 10)
 	return err
+}
 
+func dbUpdateGameTime(c *pgxpool.Pool, gameID int) error {
+	query := "UPDATE game SET last_call = $1 WHERE id=$2"
+	_, err := c.Exec(context.Background(), query, time.Now(), gameID)
+	return err
 }
