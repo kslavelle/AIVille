@@ -40,21 +40,33 @@ func createResourceTypes(c *pgx.Conn) {
 		os.Exit(1)
 	}
 
-	query2 := `INSERT INTO resource_types (name) VALUES ('energy') ON CONFLICT DO NOTHING`
-	_, err = c.Exec(context.Background(), query2)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to populate table: resource_types: %v\n", err)
-		os.Exit(1)
+	energy := `INSERT INTO resource_types (name) VALUES ('energy') ON CONFLICT DO NOTHING`
+	human := `INSERT INTO resource_types (name) VALUES ('human') ON CONFLICT DO NOTHING`
+	food := `INSERT INTO resource_types (name) VALUES ('food') ON CONFLICT DO NOTHING`
+	water := `INSERT INTO resource_types (name) VALUES ('water') ON CONFLICT DO NOTHING`
+	co2 := `INSERT INTO resource_types (name) VALUES ('co2') ON CONFLICT DO NOTHING`
+
+	queries := []string{
+		energy, human, food, water, co2,
+	}
+	for _, query := range queries {
+		_, err = c.Exec(context.Background(), query)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to populate table: resource_types: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
 
 func createResources(c *pgx.Conn) {
 	query := `
-		CREATE TABLE IF NOT EXISTS resources (
+		CREATE TABLE IF NOT EXISTS resources_actors (
 			id serial PRIMARY KEY,
 			type serial NOT NULL REFERENCES resource_types(id),
 			name text UNIQUE NOT NULL,
-			properties json NOT NULL
+			inputs json NOT NULL,
+			outputs json NOT NULL,
+			constraints json NOT NULL
 		);
 	`
 
@@ -64,14 +76,38 @@ func createResources(c *pgx.Conn) {
 		os.Exit(1)
 	}
 
-	query2 := `INSERT INTO resources (type, name, properties) VALUES (
-		1,
-		'Coal Power Station',
-		'{"cost": 1000000, "co2/hr": 100, "workers": 2}'
-	) ON CONFLICT DO NOTHING`
-	_, err = c.Exec(context.Background(), query2)
+	coalStation := `INSERT INTO 
+		resources_actors (type, name, inputs, outputs, constraints)
+		VALUES (
+			1, 'Coal Power Station',
+			'{"workers": 2}',
+			'{"co2": 100, "power": 100}',
+			'{"cost": 1000000, "land": 1}'
+		) ON CONFLICT DO NOTHING;
+		`
+
+	queries := []string{coalStation}
+
+	for _, query := range queries {
+		_, err = c.Exec(context.Background(), query)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to populate table: resources: %v\n", err)
+			os.Exit(1)
+		}
+	}
+}
+
+func dropAllTables(c *pgx.Conn) {
+	query := `
+		DROP SCHEMA public CASCADE;
+		CREATE SCHEMA public;
+
+		GRANT ALL ON SCHEMA public TO postgres;
+		GRANT ALL ON SCHEMA public TO public;
+	`
+	_, err := c.Exec(context.Background(), query)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to populate table: resources: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Unable to drop all tables: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -85,6 +121,8 @@ func main() {
 		os.Exit(1)
 	}
 	defer conn.Close(context.Background())
+
+	dropAllTables(conn)
 
 	createGameTable(conn)
 
