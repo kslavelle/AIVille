@@ -41,6 +41,7 @@ func CreateAPI() (*gin.Engine, *pgxpool.Pool) {
 
 	router.GET("/health", healthCheck(&env))
 	router.POST("/game", createNewGame(&env))
+	router.POST("/resources", createResource(&env))
 
 	return router, conn
 }

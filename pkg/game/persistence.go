@@ -34,3 +34,51 @@ func dbCreateGameState(c *pgxpool.Pool, gameid int) error {
 	return err
 
 }
+
+func dbUpdateResource(c *pgxpool.Pool, gameID int, resource string) error {
+	availableMoneyQuery := `
+		SELECT money
+		FROM stateofgame
+		WHERE gameid = $1
+		`
+	availableMoney := 0
+	err := c.QueryRow(context.Background(), availableMoneyQuery, resource).Scan(&availableMoney)
+	if err != nil {
+		return err
+	}
+
+	resourceCostQuery := `
+		SELECT constraints -> 'resource_cost' 
+		AS money
+		outputs -> 'co2'
+		AS co2
+		FROM resources_actors
+		WHERE name = $1
+		RETURNING resource_cost, co2
+		`
+	resourceCost := 0
+	// co2 := 0
+	err = c.QueryRow(context.Background(), resourceCostQuery, resource).Scan(&resourceCost)
+	if err != nil {
+		return err
+	}
+
+	postPurchaseMoney := availableMoney - resourceCost
+	if postPurchaseMoney < 0 {
+		return err
+	}
+
+	updateQuery := `
+		UPDATE stateofgame
+		SET $1 = $1 + 1
+		SET money = $2
+		SET workers = workers + 
+		WHERE gameid = $3
+		`
+	_, err = c.Exec(context.Background(), updateQuery, resource, postPurchaseMoney, gameID)
+
+	if err != nil {
+		return err
+	}
+
+}
