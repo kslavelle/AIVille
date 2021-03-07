@@ -17,5 +17,12 @@ type Game struct {
 
 // CreateGame inserts a new database with the defaults into the DB
 func CreateGame(c *pgxpool.Pool, user int, name string) error {
-	return dbCreateGame(c, name, user)
+	gameID, err := dbCreateGame(c, name, user)
+	if err != nil {
+		return err
+	}
+
+	// create game state with gameID
+	err = dbCreateGameState(c, gameID)
+	return err
 }

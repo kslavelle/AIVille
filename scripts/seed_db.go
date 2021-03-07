@@ -82,7 +82,7 @@ func createResources(c *pgx.Conn) {
 			1, 'Coal Power Station',
 			'{"workers": 2}',
 			'{"co2": 100, "power": 100}',
-			'{"cost": 1000000, "land": 1}'
+			'{"money": 1000000, "land": 1}'
 		) ON CONFLICT DO NOTHING;
 		`
 
@@ -95,6 +95,26 @@ func createResources(c *pgx.Conn) {
 			os.Exit(1)
 		}
 	}
+}
+
+func createGameState(c *pgx.Conn) {
+	query := `CREATE TABLE IF NOT EXISTS stateofgame (
+		id serial PRIMARY KEY,
+		gameid serial UNIQUE NOT NULL REFERENCES game(id),
+		workers NUMERIC NOT NULL,
+		co2 NUMERIC NOT NULL,
+		power NUMERIC NOT NULL,
+		money NUMERIC NOT NULL,
+		land NUMERIC NOT NULL,
+		water NUMERIC NOT NULL
+	);`
+
+	_, err := c.Exec(context.Background(), query)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to drop all tables: %v\n", err)
+		os.Exit(1)
+	}
+
 }
 
 func dropAllTables(c *pgx.Conn) {
@@ -128,4 +148,5 @@ func main() {
 
 	createResourceTypes(conn)
 	createResources(conn)
+	createGameState(conn)
 }
