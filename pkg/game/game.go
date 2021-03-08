@@ -56,11 +56,11 @@ func Load(c *pgxpool.Pool, gameID, userID int) (*Game, error) {
 	return &g, err
 }
 
-func (g *Game) getElapsedGameTime() time.Duration {
+func (g *Game) GetElapsedGameTime() time.Duration {
 	return time.Now().Sub(g.lastOperation) * time.Duration(GameTimeMultiplier)
 }
 
-func (g *Game) updateGameTime(c *pgxpool.Pool) error {
+func (g *Game) UpdateGameTime(c *pgxpool.Pool) error {
 	err := dbUpdateGameTime(c, g.ID)
 	return err
 }

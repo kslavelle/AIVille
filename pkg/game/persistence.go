@@ -26,7 +26,7 @@ func dbCreateGame(c *pgxpool.Pool, name string, user int) (int, error) {
 func dbCreateGameState(c *pgxpool.Pool, gameid int) error {
 	query := `
 		INSERT INTO
-			gamestate (gameid, workers, co2, power, money, land, water)
+			stateofgame (gameid, workers, co2, power, money, land, water)
 		VALUES
 			($1, $2, $3, $4, $5, $6, $7)
 		`
